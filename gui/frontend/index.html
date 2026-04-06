@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Crunch</title>
+    <link rel="stylesheet" href="./src/style.css"/>
+</head>
+<body>
+<div id="app">
+    <div id="titlebar"></div>
+
+    <!-- Screen: FFmpeg Download -->
+    <div id="screen-setup" class="screen">
+        <div class="screen-inner screen-inner--center">
+            <div class="setup-panel">
+                <h1 class="screen-title">Setup</h1>
+                <p id="setup-text" class="setup-text">Crunch needs ffmpeg to compress media files. It will be downloaded automatically (~80MB).</p>
+                <div id="setup-progress" class="setup-progress" style="display:none">
+                    <div class="progress-track">
+                        <div id="setup-bar" class="progress-fill"></div>
+                    </div>
+                    <p id="setup-pct" class="progress-label">Downloading...</p>
+                </div>
+                <button id="btn-setup" class="btn-primary">Download ffmpeg</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: File Selection -->
+    <div id="screen-files" class="screen active">
+        <div class="screen-inner screen-inner--center">
+            <div id="drop-zone" class="drop-zone" role="button" tabindex="0" aria-label="Select files to compress">
+                <svg class="drop-arrow" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 3v14m0 0l-5-5m5 5l5-5"/>
+                    <path d="M4 21h16"/>
+                </svg>
+                <p class="drop-text">Drop files to compress</p>
+                <p class="drop-hint">or click to browse</p>
+            </div>
+            <div id="file-list" class="file-list" role="list"></div>
+        </div>
+    </div>
+
+    <!-- Screen: Settings -->
+    <div id="screen-settings" class="screen">
+        <div class="screen-inner">
+            <div class="settings-panel">
+                <button id="btn-back" class="back-link" aria-label="Back to file selection">&larr; Files</button>
+                <h1 class="screen-title">Settings</h1>
+                <div id="selected-info" class="chip" aria-live="polite"></div>
+
+                <!-- Video settings -->
+                <div id="settings-video" class="settings-group">
+                    <div class="settings-section-label">Video</div>
+                    <fieldset class="field">
+                        <legend class="field-label">Preset</legend>
+                        <div class="seg-control" role="radiogroup" aria-label="Compression preset">
+                            <button class="seg-btn active" data-preset="whatsapp" role="radio" aria-checked="true">WhatsApp</button>
+                            <button class="seg-btn" data-preset="generic" role="radio" aria-checked="false">Generic</button>
+                        </div>
+                    </fieldset>
+                    <fieldset class="field">
+                        <legend class="field-label">Target size</legend>
+                        <div class="input-row">
+                            <input type="number" id="target-mb" value="8" min="1" max="500" aria-label="Target file size in megabytes"/>
+                            <span class="input-suffix" aria-hidden="true">MB</span>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- Image settings -->
+                <div id="settings-image" class="settings-group" style="display:none">
+                    <div class="settings-section-label">Image</div>
+                    <fieldset class="field">
+                        <legend class="field-label">Quality</legend>
+                        <div class="range-row">
+                            <input type="range" id="image-quality" min="1" max="100" value="75" aria-label="Image quality"/>
+                            <span id="image-quality-val" class="range-val">75</span>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- Audio settings -->
+                <div id="settings-audio" class="settings-group" style="display:none">
+                    <div class="settings-section-label">Audio</div>
+                    <fieldset class="field">
+                        <legend class="field-label">Bitrate</legend>
+                        <div class="seg-control" role="radiogroup" aria-label="Audio bitrate">
+                            <button class="seg-btn" data-bitrate="96" role="radio" aria-checked="false">96k</button>
+                            <button class="seg-btn active" data-bitrate="128" role="radio" aria-checked="true">128k</button>
+                            <button class="seg-btn" data-bitrate="192" role="radio" aria-checked="false">192k</button>
+                            <button class="seg-btn" data-bitrate="320" role="radio" aria-checked="false">320k</button>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- PDF settings -->
+                <div id="settings-pdf" class="settings-group" style="display:none">
+                    <div class="settings-section-label">PDF</div>
+                    <fieldset class="field">
+                        <legend class="field-label">Quality</legend>
+                        <div class="seg-control" role="radiogroup" aria-label="PDF quality">
+                            <button class="seg-btn" data-pdfq="screen" role="radio" aria-checked="false">Screen</button>
+                            <button class="seg-btn active" data-pdfq="ebook" role="radio" aria-checked="true">Ebook</button>
+                            <button class="seg-btn" data-pdfq="printer" role="radio" aria-checked="false">Printer</button>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- Output directory -->
+                <fieldset class="field">
+                    <legend class="field-label">Save to</legend>
+                    <button id="btn-output-dir" class="output-dir-btn" aria-label="Choose output directory">
+                        <span id="output-dir-label">Same folder as original</span>
+                    </button>
+                </fieldset>
+
+                <button id="btn-compress" class="btn-primary">Compress</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Progress -->
+    <div id="screen-progress" class="screen">
+        <div class="screen-inner screen-inner--center">
+            <div class="progress-panel" role="status" aria-live="polite">
+                <div id="progress-text" class="progress-pct" aria-label="Compression progress">0</div>
+                <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div id="progress-bar" class="progress-fill"></div>
+                </div>
+                <p id="progress-file" class="progress-label">Preparing...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen: Results -->
+    <div id="screen-results" class="screen">
+        <div class="screen-inner">
+            <div class="results-panel">
+                <h1 class="screen-title">Done</h1>
+                <div id="results-list" class="results-list" role="list"></div>
+                <button id="btn-new" class="btn-primary">Compress more</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="./src/main.js" type="module"></script>
+</body>
+</html>

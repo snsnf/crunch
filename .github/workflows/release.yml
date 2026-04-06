@@ -1,0 +1,170 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [arm64, amd64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install ffmpeg
+        run: brew install ffmpeg
+
+      - name: Build GUI with bundled ffmpeg
+        working-directory: gui
+        run: bash build.sh
+
+      - name: Build CLI
+        run: |
+          GOARCH=${{ matrix.arch }} go build -o crunch .
+
+      - name: Package
+        run: |
+          cd gui/build/bin
+          zip -r /tmp/Crunch-macos-${{ matrix.arch }}.zip Crunch.app
+          cd $GITHUB_WORKSPACE
+          zip /tmp/crunch-cli-macos-${{ matrix.arch }}.zip crunch
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: |
+            /tmp/Crunch-macos-${{ matrix.arch }}.zip
+            /tmp/crunch-cli-macos-${{ matrix.arch }}.zip
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build GUI
+        working-directory: gui
+        run: wails build
+
+      - name: Download static ffmpeg (Windows)
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "$env:TEMP\ffmpeg.zip"
+          Expand-Archive -Path "$env:TEMP\ffmpeg.zip" -DestinationPath "$env:TEMP\ffmpeg-extract" -Force
+          $ffDir = Get-ChildItem "$env:TEMP\ffmpeg-extract" -Directory | Select-Object -First 1
+          Copy-Item "$($ffDir.FullName)\bin\ffmpeg.exe" "gui\build\bin\ffmpeg.exe"
+          Copy-Item "$($ffDir.FullName)\bin\ffprobe.exe" "gui\build\bin\ffprobe.exe"
+
+      - name: Build CLI
+        run: go build -o crunch.exe .
+
+      - name: Package
+        shell: powershell
+        run: |
+          Compress-Archive -Path "gui\build\bin\*" -DestinationPath "$env:TEMP\Crunch-windows-amd64.zip"
+          Compress-Archive -Path "crunch.exe" -DestinationPath "$env:TEMP\crunch-cli-windows-amd64.zip"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-amd64
+          path: |
+            ${{ runner.temp }}\Crunch-windows-amd64.zip
+            ${{ runner.temp }}\crunch-cli-windows-amd64.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build GUI
+        working-directory: gui
+        run: wails build
+
+      - name: Download static ffmpeg (Linux)
+        run: |
+          curl -L -o /tmp/ffmpeg.tar.xz "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+          mkdir -p /tmp/ffmpeg-extract
+          tar xf /tmp/ffmpeg.tar.xz -C /tmp/ffmpeg-extract --strip-components=1
+          cp /tmp/ffmpeg-extract/ffmpeg gui/build/bin/ffmpeg
+          cp /tmp/ffmpeg-extract/ffprobe gui/build/bin/ffprobe
+          chmod +x gui/build/bin/ffmpeg gui/build/bin/ffprobe
+
+      - name: Build CLI
+        run: go build -o crunch .
+
+      - name: Package
+        run: |
+          cd gui/build/bin
+          tar czf /tmp/Crunch-linux-amd64.tar.gz *
+          cd $GITHUB_WORKSPACE
+          tar czf /tmp/crunch-cli-linux-amd64.tar.gz crunch
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-amd64
+          path: |
+            /tmp/Crunch-linux-amd64.tar.gz
+            /tmp/crunch-cli-linux-amd64.tar.gz
+
+  release:
+    needs: [build-macos, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.tar.gz

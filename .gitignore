@@ -1,0 +1,34 @@
+# Build artifacts
+crunch
+gui/build/bin/
+gui/build/ffmpeg-cache/
+gui/frontend/dist/
+gui/frontend/node_modules/
+gui/frontend/package.json.md5
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude / AI agents
+.claude/
+.agents/
+CLAUDE.md
+
+# Docs / plans
+docs/
+
+# Pencil design files
+*.pen
+
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Dependencies
+node_modules/
+
+# Skills
+skills-lock.json
