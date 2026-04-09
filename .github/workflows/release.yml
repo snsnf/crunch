@@ -23,13 +23,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
-
-      - name: Install ffmpeg
-        run: brew install ffmpeg
 
       - name: Build GUI with bundled ffmpeg
         working-directory: gui
@@ -65,7 +65,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -111,7 +114,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install Linux dependencies
         run: |
