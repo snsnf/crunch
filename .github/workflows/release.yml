@@ -92,16 +92,17 @@ jobs:
       - name: Package
         shell: powershell
         run: |
-          Compress-Archive -Path "gui\build\bin\*" -DestinationPath "$env:TEMP\Crunch-windows-amd64.zip"
-          Compress-Archive -Path "crunch.exe" -DestinationPath "$env:TEMP\crunch-cli-windows-amd64.zip"
+          New-Item -ItemType Directory -Force -Path "artifacts"
+          Compress-Archive -Path "gui\build\bin\*" -DestinationPath "artifacts\Crunch-windows-amd64.zip"
+          Compress-Archive -Path "crunch.exe" -DestinationPath "artifacts\crunch-cli-windows-amd64.zip"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: windows-amd64
           path: |
-            ${{ runner.temp }}\Crunch-windows-amd64.zip
-            ${{ runner.temp }}\crunch-cli-windows-amd64.zip
+            artifacts\Crunch-windows-amd64.zip
+            artifacts\crunch-cli-windows-amd64.zip
 
   build-linux:
     runs-on: ubuntu-22.04
