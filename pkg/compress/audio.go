@@ -20,10 +20,11 @@ type AudioOptions struct {
 }
 
 type AudioResult struct {
-	InputPath    string
-	OutputPath   string
-	InputSizeKB  int64
-	OutputSizeKB int64
+	InputPath      string
+	OutputPath     string
+	InputSizeKB    int64
+	OutputSizeKB   int64
+	AlreadyOptimal bool // true if file was already smaller than what compression would produce
 }
 
 func RunAudio(paths *ffmpeg.Paths, opts AudioOptions, onProgress func(percent float64)) (*AudioResult, error) {
@@ -73,6 +74,25 @@ func RunAudio(paths *ffmpeg.Paths, opts AudioOptions, onProgress func(percent fl
 	outputStat, err := os.Stat(outputPath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read output: %w", err)
+	}
+
+	// If output is larger than input, discard and copy original
+	if outputStat.Size() >= inputStat.Size() {
+		os.Remove(outputPath)
+		inputData, err := os.ReadFile(opts.InputPath)
+		if err != nil {
+			return nil, fmt.Errorf("cannot read input: %w", err)
+		}
+		if err := os.WriteFile(outputPath, inputData, 0644); err != nil {
+			return nil, fmt.Errorf("cannot write output: %w", err)
+		}
+		return &AudioResult{
+			InputPath:      opts.InputPath,
+			OutputPath:     outputPath,
+			InputSizeKB:    inputSizeKB,
+			OutputSizeKB:   inputSizeKB,
+			AlreadyOptimal: true,
+		}, nil
 	}
 
 	return &AudioResult{

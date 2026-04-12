@@ -33,6 +33,7 @@ export namespace main {
 	    outputRes: string;
 	    fileType: string;
 	    error?: string;
+	    note?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new CompressResult(source);
@@ -48,6 +49,7 @@ export namespace main {
 	        this.outputRes = source["outputRes"];
 	        this.fileType = source["fileType"];
 	        this.error = source["error"];
+	        this.note = source["note"];
 	    }
 	}
 	export class FileInfo {

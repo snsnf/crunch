@@ -211,10 +211,10 @@ func processImage(paths *ffmpeg.Paths, inputPath string) error {
 
 func processAudio(paths *ffmpeg.Paths, inputPath string) error {
 	opts := compress.AudioOptions{
-		InputPath: inputPath,
+		InputPath:  inputPath,
 		OutputPath: output,
-		Bitrate:   audioBitrate,
-		StripMeta: false,
+		Bitrate:    audioBitrate,
+		StripMeta:  false,
 	}
 
 	result, err := compress.RunAudio(paths, opts, func(pct float64) {
@@ -236,6 +236,9 @@ func processAudio(paths *ffmpeg.Paths, inputPath string) error {
 		safeDivide(result.InputSizeKB, result.OutputSizeKB),
 		result.OutputPath,
 	)
+	if result.AlreadyOptimal {
+		fmt.Println("File is already optimized at this quality level. Try a lower quality to reduce size.")
+	}
 	return nil
 }
 

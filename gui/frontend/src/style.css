@@ -406,6 +406,18 @@ body {
     box-shadow: var(--focus-ring);
 }
 
+.seg-label {
+    display: block;
+    font-size: 13px;
+}
+
+.seg-hint {
+    display: block;
+    font-size: 10px;
+    opacity: 0.5;
+    margin-top: 2px;
+}
+
 /* Input */
 .input-row {
     display: flex;
@@ -693,6 +705,13 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
     background: var(--success-dim);
     color: var(--success);
     font-weight: 600;
+}
+
+.result-note {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    opacity: 0.8;
 }
 
 .result-error {

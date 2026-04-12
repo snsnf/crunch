@@ -192,6 +192,7 @@ type CompressResult struct {
 	OutputRes  string `json:"outputRes"`
 	FileType   string `json:"fileType"`
 	Error      string `json:"error,omitempty"`
+	Note       string `json:"note,omitempty"`
 }
 
 // Compress runs compression on the given files and emits progress events.
@@ -218,6 +219,17 @@ func outputPathInDir(inputPath, dir, ext string) string {
 	if dir == "" {
 		return ""
 	}
+	// Validate output directory is an absolute path that exists
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return ""
+	}
+	info, err := os.Stat(absDir)
+	if err != nil || !info.IsDir() {
+		return ""
+	}
+	dir = absDir
+
 	base := filepath.Base(inputPath)
 	baseNoExt := base[:len(base)-len(filepath.Ext(base))]
 	if ext == "" {
@@ -328,13 +340,17 @@ func (a *App) compressAudio(filePath string, opts CompressOptions, index, total 
 		return CompressResult{InputPath: filePath, FileType: "audio", Error: err.Error()}
 	}
 
-	return CompressResult{
+	res := CompressResult{
 		InputPath:  filePath,
 		OutputPath: result.OutputPath,
 		InputSize:  formatKB(result.InputSizeKB),
 		OutputSize: formatKB(result.OutputSizeKB),
 		FileType:   "audio",
 	}
+	if result.AlreadyOptimal {
+		res.Note = "Already optimized at this quality. Try a lower quality to reduce size."
+	}
+	return res
 }
 
 func (a *App) compressPDF(filePath string, opts CompressOptions) CompressResult {
@@ -396,10 +412,10 @@ func (a *App) RevealFile(path string) {
 
 	switch goruntime.GOOS {
 	case "darwin":
-		exec.Command("open", "-R", path).Start()
+		exec.Command("open", "-R", "--", path).Start()
 	case "windows":
 		exec.Command("explorer", "/select,", path).Start()
 	default:
-		exec.Command("xdg-open", filepath.Dir(path)).Start()
+		exec.Command("xdg-open", "--", filepath.Dir(path)).Start()
 	}
 }

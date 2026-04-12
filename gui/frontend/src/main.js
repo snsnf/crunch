@@ -405,6 +405,10 @@ function showResults(results) {
 
             item.appendChild(el('div', {className: 'result-stats'}, statItems));
 
+            if (r.note) {
+                item.appendChild(el('div', {className: 'result-note', textContent: r.note}));
+            }
+
             item.appendChild(el('button', {
                 className: 'result-open',
                 textContent: 'Show in Finder \u2192',
