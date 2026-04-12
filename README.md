@@ -38,25 +38,42 @@ Drop a file. Pick a size. Get a smaller file. That's it.
 
 ## Install
 
-### macOS (Homebrew)
+### GUI App
 
+**macOS (Homebrew):**
 ```bash
 brew tap snsnf/crunch
 brew install --cask crunch
 ```
 
-### Download
+**Windows:** Download [Crunch-Setup-windows-amd64.exe](https://github.com/snsnf/crunch/releases/latest) and run the installer.
 
-Grab the latest release from the [Releases page](https://github.com/yourname/crunch/releases):
+**Linux / Manual download:** Grab the latest from the [Releases page](https://github.com/snsnf/crunch/releases/latest).
 
-| Platform | GUI | CLI |
-|----------|-----|-----|
-| macOS (Apple Silicon) | `Crunch-macos-arm64.zip` | `crunch-cli-macos-arm64.zip` |
-| macOS (Intel) | `Crunch-macos-amd64.zip` | `crunch-cli-macos-amd64.zip` |
-| Windows | `Crunch-windows-amd64.zip` | `crunch-cli-windows-amd64.zip` |
-| Linux | `Crunch-linux-amd64.tar.gz` | `crunch-cli-linux-amd64.tar.gz` |
+| Platform | Download |
+|----------|----------|
+| macOS (Apple Silicon) | `Crunch-macos-arm64.zip` |
+| macOS (Intel) | `Crunch-macos-amd64.zip` |
+| Linux | `Crunch-linux-amd64.tar.gz` |
 
-The GUI app comes with ffmpeg bundled - no extra installs needed.
+The GUI comes with ffmpeg bundled — no extra setup needed.
+
+> **macOS note:** If you see "Apple could not verify", run:
+> ```bash
+> xattr -d com.apple.quarantine /path/to/Crunch.app
+> ```
+
+### CLI
+
+**macOS / Linux:**
+```bash
+curl -sSL https://raw.githubusercontent.com/snsnf/crunch/main/install.sh | sh
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/snsnf/crunch/main/install.ps1 | iex
+```
 
 ## Usage
 
@@ -70,7 +87,7 @@ The app figures out what type of file you dropped and shows the right settings:
 |-----------|----------|
 | Video | Preset (WhatsApp/Generic) + target size in MB |
 | Image | Quality slider (1-100) |
-| Audio | Bitrate (96k / 128k / 192k / 320k) |
+| Audio | Quality (Low / Medium / High / Best) |
 | PDF | Quality (Screen / Ebook / Printer) |
 
 Mix different file types? No problem - it shows all relevant settings and compresses each file with its own type's settings.
