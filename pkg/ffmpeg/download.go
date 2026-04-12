@@ -4,6 +4,8 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -83,12 +85,17 @@ func downloadAndExtract(url, destDir string, progressCh chan<- DownloadProgress)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("download failed: HTTP %d", resp.StatusCode)
+	}
+
 	tmpFile, err := os.CreateTemp("", "crunch-ffmpeg-*")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(tmpFile.Name())
 
+	hasher := sha256.New()
 	var reader io.Reader = resp.Body
 	if progressCh != nil {
 		reader = &progressReader{
@@ -97,6 +104,7 @@ func downloadAndExtract(url, destDir string, progressCh chan<- DownloadProgress)
 			progressCh: progressCh,
 		}
 	}
+	reader = io.TeeReader(reader, hasher)
 
 	if _, err := io.Copy(tmpFile, reader); err != nil {
 		tmpFile.Close()
@@ -108,12 +116,29 @@ func downloadAndExtract(url, destDir string, progressCh chan<- DownloadProgress)
 		close(progressCh)
 	}
 
+	// Verify checksum if known
+	gotHash := hex.EncodeToString(hasher.Sum(nil))
+	if expectedHash, ok := knownHashes[url]; ok {
+		if gotHash != expectedHash {
+			return fmt.Errorf("checksum mismatch for %s:\n  expected: %s\n  got:      %s", url, expectedHash, gotHash)
+		}
+	}
+
 	if strings.HasSuffix(url, ".zip") {
 		return extractZip(tmpFile.Name(), destDir)
 	} else if strings.HasSuffix(url, ".tar.xz") {
 		return extractTarXz(tmpFile.Name(), destDir)
 	}
 	return extractTarGz(tmpFile.Name(), destDir)
+}
+
+// knownHashes maps download URLs to their expected SHA-256 checksums.
+// Update these when upgrading ffmpeg versions.
+// To get a hash: curl -L <url> | shasum -a 256
+var knownHashes = map[string]string{
+	// Populated as ffmpeg versions are pinned.
+	// Example:
+	// "https://evermeet.cx/ffmpeg/getrelease/zip": "abc123...",
 }
 
 type progressReader struct {
