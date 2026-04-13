@@ -84,10 +84,14 @@ func findInLocal() (*Paths, error) {
 func checkDir(dir string) (*Paths, error) {
 	ffmpeg := filepath.Join(dir, ffmpegBinary())
 	ffprobe := filepath.Join(dir, ffprobeBinary())
-	if err := exec.Command(ffmpeg, "-version").Run(); err != nil {
+	cmd1 := exec.Command(ffmpeg, "-version")
+	hideWindow(cmd1)
+	if err := cmd1.Run(); err != nil {
 		return nil, err
 	}
-	if err := exec.Command(ffprobe, "-version").Run(); err != nil {
+	cmd2 := exec.Command(ffprobe, "-version")
+	hideWindow(cmd2)
+	if err := cmd2.Run(); err != nil {
 		return nil, err
 	}
 	return &Paths{FFmpeg: ffmpeg, FFprobe: ffprobe}, nil

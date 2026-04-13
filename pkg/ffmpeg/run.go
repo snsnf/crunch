@@ -22,6 +22,7 @@ func RunEncode(ffmpegPath string, args []string, duration float64, progressCh ch
 	}
 
 	cmd := exec.Command(ffmpegPath, args...)
+	hideWindow(cmd)
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return err

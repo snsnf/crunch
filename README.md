@@ -34,7 +34,7 @@ Drop a file. Pick a size. Get a smaller file. That's it.
 - **Video** - WhatsApp preset that actually produces WhatsApp-quality results. No double compression.
 - **Image** - Quality-based compression with smart PNG palette optimization. Keeps your format, actually makes files smaller.
 - **Audio** - Pick a quality level, get a smaller file. Revolutionary.
-- **PDF** - Screen, Ebook, or Printer quality. Requires Ghostscript (`brew install ghostscript`).
+- **PDF** - Screen, Ebook, or Printer quality. Requires [Ghostscript](https://www.ghostscript.com/) installed separately.
 
 ## Install
 

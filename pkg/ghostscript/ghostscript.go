@@ -60,7 +60,9 @@ func Detect() (string, error) {
 			if runtime.GOOS == "windows" {
 				path = dir + `\` + name + ".exe"
 			}
-			if err := exec.Command(path, "--version").Run(); err == nil {
+			detectCmd := exec.Command(path, "--version")
+			hideWindow(detectCmd)
+			if err := detectCmd.Run(); err == nil {
 				return path, nil
 			}
 		}
@@ -116,6 +118,7 @@ func Compress(gsPath, input, output string, quality PDFQuality, imageDPI int) er
 	)
 
 	cmd := exec.Command(gsPath, args...)
+	hideWindow(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		outStr := strings.TrimSpace(string(out))

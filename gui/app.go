@@ -355,7 +355,7 @@ func (a *App) compressAudio(filePath string, opts CompressOptions, index, total 
 
 func (a *App) compressPDF(filePath string, opts CompressOptions) CompressResult {
 	if a.ghostscriptPath == "" {
-		return CompressResult{InputPath: filePath, FileType: "pdf", Error: "ghostscript not found — install: brew install ghostscript"}
+		return CompressResult{InputPath: filePath, FileType: "pdf", Error: "ghostscript not found — install from ghostscript.com"}
 	}
 
 	quality := ghostscript.QualityEbook

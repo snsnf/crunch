@@ -45,6 +45,7 @@ func Run(ffprobePath, filePath string) (*VideoInfo, error) {
 		"-of", "json",
 		filePath,
 	)
+	hideWindow(cmd)
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("ffprobe failed for %s: %w", filePath, err)

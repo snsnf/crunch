@@ -80,7 +80,9 @@ func DetectGPUEncoder(ffmpegPath string) *HWEncoder {
 
 // listEncoders returns a set of available encoder names from ffmpeg -encoders.
 func listEncoders(ffmpegPath string) map[string]bool {
-	out, err := exec.Command(ffmpegPath, "-encoders", "-hide_banner").Output()
+	cmd := exec.Command(ffmpegPath, "-encoders", "-hide_banner")
+	hideWindow(cmd)
+	out, err := cmd.Output()
 	if err != nil {
 		return nil
 	}
@@ -126,8 +128,9 @@ func testEncoder(ffmpegPath string, encoder HWEncoder) bool {
 		"-f", "null", "-",
 	)
 
-	cmd := exec.Command(ffmpegPath, args...)
-	return cmd.Run() == nil
+	testCmd := exec.Command(ffmpegPath, args...)
+	hideWindow(testCmd)
+	return testCmd.Run() == nil
 }
 
 // BuildGPUArgs builds ffmpeg args for single-pass GPU hardware encoding on Windows/Linux.

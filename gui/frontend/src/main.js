@@ -236,7 +236,7 @@ function goToSettings() {
     if (types.has('pdf')) {
         HasGhostscript().then(has => {
             if (!has) {
-                showError('PDF support requires Ghostscript. Install: brew install ghostscript');
+                showError('PDF support requires Ghostscript. Install from ghostscript.com');
             }
         });
     }

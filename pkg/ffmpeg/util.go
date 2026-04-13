@@ -11,6 +11,7 @@ import (
 // No progress tracking. Used for quick operations like image compression.
 func RunSimple(ffmpegPath string, args []string) error {
 	cmd := exec.Command(ffmpegPath, args...)
+	hideWindow(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("ffmpeg error: %w\n%s", err, string(out))
@@ -34,6 +35,7 @@ func ProbeDuration(ffprobePath, filePath string) (float64, error) {
 		"-of", "json",
 		filePath,
 	)
+	hideWindow(cmd)
 	out, err := cmd.Output()
 	if err != nil {
 		return 0, fmt.Errorf("ffprobe failed: %w", err)
