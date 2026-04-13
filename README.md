@@ -34,7 +34,7 @@ Drop a file. Pick a size. Get a smaller file. That's it.
 - **Video** - WhatsApp preset that actually produces WhatsApp-quality results. No double compression.
 - **Image** - Quality-based compression with smart PNG palette optimization. Keeps your format, actually makes files smaller.
 - **Audio** - Pick a quality level, get a smaller file. Revolutionary.
-- **PDF** - Screen, Ebook, or Printer quality. Requires [Ghostscript](https://www.ghostscript.com/) installed separately.
+- **PDF** - Low, Medium, or High quality. Requires [Ghostscript](https://www.ghostscript.com/) installed separately.
 
 ## Install
 
@@ -93,7 +93,7 @@ The app figures out what type of file you dropped and shows the right settings:
 | Video | Preset (WhatsApp/Generic) + target size in MB |
 | Image | Quality slider (1-100) |
 | Audio | Quality (Low / Medium / High / Best) |
-| PDF | Quality (Screen / Ebook / Printer) |
+| PDF | Quality (Low / Medium / High) |
 
 Mix different file types? No problem - it shows all relevant settings and compresses each file with its own type's settings.
 
@@ -112,8 +112,8 @@ crunch photo.png --quality 60
 # Audio - 128kbps
 crunch podcast.wav --bitrate 128
 
-# PDF - ebook quality
-crunch document.pdf --pdf-quality ebook
+# PDF - medium quality
+crunch document.pdf --pdf-quality medium
 
 # Batch - compress everything
 crunch *.mp4 -t 8

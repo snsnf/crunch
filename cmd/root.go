@@ -44,7 +44,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&useGPU, "gpu", false, "Use GPU hardware encoding (NVENC/AMF/QSV/VAAPI)")
 	rootCmd.Flags().IntVar(&imgQuality, "quality", 75, "Image: quality 1-100 (default: 75)")
 	rootCmd.Flags().IntVar(&audioBitrate, "bitrate", 0, "Audio: target bitrate in kbps (default: auto)")
-	rootCmd.Flags().StringVar(&pdfQuality, "pdf-quality", "ebook", "PDF: quality preset (screen/ebook/printer/prepress)")
+	rootCmd.Flags().StringVar(&pdfQuality, "pdf-quality", "medium", "PDF: quality preset (low/medium/high)")
 }
 
 func Execute() {
@@ -248,16 +248,15 @@ func processPDF(inputPath string) error {
 		return err
 	}
 
-	quality := ghostscript.PDFQuality("/" + pdfQuality)
-	// Validate
-	valid := false
-	for _, q := range ghostscript.Qualities {
-		if q == quality {
-			valid = true
-			break
-		}
-	}
-	if !valid {
+	var quality ghostscript.PDFQuality
+	switch pdfQuality {
+	case "low":
+		quality = ghostscript.QualityScreen
+	case "medium":
+		quality = ghostscript.QualityEbook
+	case "high":
+		quality = ghostscript.QualityPrinter
+	default:
 		quality = ghostscript.QualityEbook
 	}
 
