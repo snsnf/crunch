@@ -223,5 +223,4 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add Casks/crunch.rb Formula/crunch-cli.rb
-          git commit -m "Update crunch to $VERSION."
-          git push
+          git diff --cached --quiet || (git commit -m "Update crunch to $VERSION." && git push)
