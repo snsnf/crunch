@@ -96,7 +96,7 @@ jobs:
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "artifacts"
-          makensis installer\crunch.nsi
+          & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" installer\crunch.nsi
 
       - name: Package CLI
         shell: powershell
