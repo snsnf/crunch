@@ -186,3 +186,39 @@ jobs:
             artifacts/**/*.tar.gz
             artifacts/**/*.exe
             artifacts/checksums.txt
+
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SHA_ARM64=$(grep 'Crunch-macos-arm64.zip' artifacts/checksums.txt | cut -d ' ' -f 1)
+          SHA_AMD64=$(grep 'Crunch-macos-amd64.zip' artifacts/checksums.txt | cut -d ' ' -f 1)
+          SHA_CLI_ARM64=$(grep 'crunch-cli-macos-arm64.zip' artifacts/checksums.txt | cut -d ' ' -f 1)
+          SHA_CLI_AMD64=$(grep 'crunch-cli-macos-amd64.zip' artifacts/checksums.txt | cut -d ' ' -f 1)
+          SHA_CLI_LINUX=$(grep 'crunch-cli-linux-amd64.tar.gz' artifacts/checksums.txt | cut -d ' ' -f 1)
+
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/snsnf/homebrew-crunch.git tap
+          mkdir -p tap/Casks tap/Formula
+
+          # Update cask (GUI)
+          sed -e "s/version \".*\"/version \"$VERSION\"/" \
+              -e "s/SHA256_ARM64/$SHA_ARM64/" \
+              -e "s/SHA256_AMD64/$SHA_AMD64/" \
+              tap/Casks/crunch.rb > tap/Casks/crunch.rb.tmp
+          mv tap/Casks/crunch.rb.tmp tap/Casks/crunch.rb
+
+          # Update formula (CLI)
+          sed -e "s/version \".*\"/version \"$VERSION\"/" \
+              -e "s/SHA256_CLI_ARM64/$SHA_CLI_ARM64/" \
+              -e "s/SHA256_CLI_AMD64/$SHA_CLI_AMD64/" \
+              -e "s/SHA256_CLI_LINUX/$SHA_CLI_LINUX/" \
+              tap/Formula/crunch-cli.rb > tap/Formula/crunch-cli.rb.tmp
+          mv tap/Formula/crunch-cli.rb.tmp tap/Formula/crunch-cli.rb
+
+          cd tap
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Casks/crunch.rb Formula/crunch-cli.rb
+          git commit -m "Update crunch to $VERSION."
+          git push
