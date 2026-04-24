@@ -10,6 +10,10 @@ export function DownloadFFmpeg() {
   return window['go']['main']['App']['DownloadFFmpeg']();
 }
 
+export function GetVersion() {
+  return window['go']['main']['App']['GetVersion']();
+}
+
 export function HasFFmpeg() {
   return window['go']['main']['App']['HasFFmpeg']();
 }

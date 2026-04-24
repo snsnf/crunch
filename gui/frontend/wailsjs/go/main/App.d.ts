@@ -6,6 +6,8 @@ export function Compress(arg1:main.CompressOptions):Promise<Array<main.CompressR
 
 export function DownloadFFmpeg():Promise<boolean>;
 
+export function GetVersion():Promise<string>;
+
 export function HasFFmpeg():Promise<boolean>;
 
 export function HasGhostscript():Promise<boolean>;

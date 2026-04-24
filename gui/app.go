@@ -395,6 +395,11 @@ func formatKB(kb int64) string {
 	return fmt.Sprintf("%dKB", kb)
 }
 
+// GetVersion returns the app version string.
+func (a *App) GetVersion() string {
+	return "1.0.0"
+}
+
 // SelectOutputDir opens a directory picker dialog.
 func (a *App) SelectOutputDir() (string, error) {
 	return runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{

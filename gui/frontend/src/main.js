@@ -1,6 +1,6 @@
 import './style.css';
-import {SelectFiles, Compress, RevealFile, DownloadFFmpeg, HasGhostscript, SelectOutputDir} from '../wailsjs/go/main/App';
-import {EventsOn} from '../wailsjs/runtime/runtime';
+import {SelectFiles, Compress, RevealFile, DownloadFFmpeg, HasGhostscript, SelectOutputDir, GetVersion} from '../wailsjs/go/main/App';
+import {EventsOn, BrowserOpenURL} from '../wailsjs/runtime/runtime';
 
 let selectedFiles = [];
 let currentPreset = 'whatsapp';
@@ -430,6 +430,38 @@ function showResults(results) {
 function basename(path) {
     return path.split('/').pop().split('\\').pop();
 }
+
+// ─── About modal ───
+
+const aboutBackdrop = document.getElementById('about-backdrop');
+const aboutModal = document.getElementById('about-modal');
+
+GetVersion().then(v => {
+    document.getElementById('about-version').textContent = 'v' + v;
+});
+
+document.getElementById('btn-about').addEventListener('click', () => {
+    aboutBackdrop.hidden = false;
+    document.getElementById('about-close').focus();
+});
+
+function closeAbout() {
+    aboutBackdrop.hidden = true;
+}
+
+document.getElementById('about-close').addEventListener('click', closeAbout);
+
+document.getElementById('about-github').addEventListener('click', () => {
+    BrowserOpenURL('https://github.com/snsnf');
+});
+
+aboutBackdrop.addEventListener('click', (e) => {
+    if (!aboutModal.contains(e.target)) closeAbout();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !aboutBackdrop.hidden) closeAbout();
+});
 
 document.getElementById('btn-new').addEventListener('click', () => {
     selectedFiles = [];

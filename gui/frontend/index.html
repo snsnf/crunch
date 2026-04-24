@@ -8,7 +8,26 @@
 </head>
 <body>
 <div id="app">
-    <div id="titlebar"></div>
+    <div id="titlebar">
+        <button id="btn-about" class="about-btn" aria-label="About Crunch">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="8.01"/>
+                <line x1="12" y1="12" x2="12" y2="16"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- About modal -->
+    <div id="about-backdrop" class="about-backdrop" hidden>
+        <div id="about-modal" class="about-modal" role="dialog" aria-modal="true" aria-label="About Crunch">
+            <button id="about-close" class="about-close" aria-label="Close">&times;</button>
+            <img src="/appicon.png" class="about-logo" alt="Crunch logo" />
+            <div class="about-name">Crunch</div>
+            <div id="about-version" class="about-version"></div>
+            <button id="about-github" class="about-link">@snsnf</button>
+        </div>
+    </div>
 
     <!-- Screen: FFmpeg Download -->
     <div id="screen-setup" class="screen">
