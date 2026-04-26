@@ -245,11 +245,11 @@ func (a *App) compressOne(filePath string, opts CompressOptions, index, total in
 	case compress.FileTypeVideo:
 		return a.compressVideo(filePath, opts, index, total)
 	case compress.FileTypeImage:
-		return a.compressImage(filePath, opts)
+		return a.compressImage(filePath, opts, index, total)
 	case compress.FileTypeAudio:
 		return a.compressAudio(filePath, opts, index, total)
 	case compress.FileTypePDF:
-		return a.compressPDF(filePath, opts)
+		return a.compressPDF(filePath, opts, index, total)
 	default:
 		return CompressResult{InputPath: filePath, Error: "unsupported file type"}
 	}
@@ -290,7 +290,7 @@ func (a *App) compressVideo(filePath string, opts CompressOptions, index, total 
 	}
 }
 
-func (a *App) compressImage(filePath string, opts CompressOptions) CompressResult {
+func (a *App) compressImage(filePath string, opts CompressOptions, index, total int) CompressResult {
 	if a.ffmpegPaths == nil {
 		return CompressResult{InputPath: filePath, Error: "ffmpeg not available"}
 	}
@@ -303,8 +303,12 @@ func (a *App) compressImage(filePath string, opts CompressOptions) CompressResul
 	result, err := compress.RunImage(a.ffmpegPaths, compress.ImageOptions{
 		InputPath:  filePath,
 		OutputPath: outputPathInDir(filePath, opts.OutputDir, ""),
-		Quality:   quality,
-		StripMeta: true,
+		Quality:    quality,
+		StripMeta:  true,
+	}, func(pct float64) {
+		runtime.EventsEmit(a.ctx, "compress:progress", map[string]interface{}{
+			"index": index, "total": total, "pass": 1, "percent": pct,
+		})
 	})
 	if err != nil {
 		return CompressResult{InputPath: filePath, FileType: "image", Error: err.Error()}
@@ -353,10 +357,14 @@ func (a *App) compressAudio(filePath string, opts CompressOptions, index, total 
 	return res
 }
 
-func (a *App) compressPDF(filePath string, opts CompressOptions) CompressResult {
+func (a *App) compressPDF(filePath string, opts CompressOptions, index, total int) CompressResult {
 	if a.ghostscriptPath == "" {
 		return CompressResult{InputPath: filePath, FileType: "pdf", Error: "ghostscript not found — install from ghostscript.com"}
 	}
+
+	runtime.EventsEmit(a.ctx, "compress:progress", map[string]interface{}{
+		"index": index, "total": total, "pass": 1, "percent": 0,
+	})
 
 	quality := ghostscript.QualityEbook
 	switch opts.PDFQuality {
@@ -378,6 +386,10 @@ func (a *App) compressPDF(filePath string, opts CompressOptions) CompressResult 
 	if err != nil {
 		return CompressResult{InputPath: filePath, FileType: "pdf", Error: err.Error()}
 	}
+
+	runtime.EventsEmit(a.ctx, "compress:progress", map[string]interface{}{
+		"index": index, "total": total, "pass": 1, "percent": 100,
+	})
 
 	return CompressResult{
 		InputPath:  filePath,

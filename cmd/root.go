@@ -191,7 +191,7 @@ func processImage(paths *ffmpeg.Paths, inputPath string) error {
 		fmt.Printf("Compressing image (quality=%d)...", imgQuality)
 	}
 
-	result, err := compress.RunImage(paths, opts)
+	result, err := compress.RunImage(paths, opts, nil)
 	if err != nil {
 		return err
 	}

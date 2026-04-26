@@ -1,10 +1,12 @@
 package ghostscript
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // PDFQuality maps to Ghostscript PDFSETTINGS.
@@ -117,10 +119,16 @@ func Compress(gsPath, input, output string, quality PDFQuality, imageDPI int) er
 		input,
 	)
 
-	cmd := exec.Command(gsPath, args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, gsPath, args...)
 	hideWindow(cmd)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return fmt.Errorf("ghostscript timed out after 10 minutes")
+		}
 		outStr := strings.TrimSpace(string(out))
 		if outStr != "" {
 			return fmt.Errorf("ghostscript error: %w\n%s", err, outStr)

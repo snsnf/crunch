@@ -6,6 +6,25 @@ import (
 	"strings"
 )
 
+// BuildPNGPalettegenArgs generates a palette PNG from the source image (PNG pass 1).
+func BuildPNGPalettegenArgs(input, paletteOut string, colors int) []string {
+	return []string{
+		"-y", "-i", input,
+		"-vf", fmt.Sprintf("palettegen=max_colors=%d:stats_mode=diff", colors),
+		paletteOut,
+	}
+}
+
+// BuildPNGPaletteuseArgs applies a palette to produce the final quantized PNG (PNG pass 2).
+func BuildPNGPaletteuseArgs(input, paletteIn, output string) []string {
+	return []string{
+		"-y", "-i", input, "-i", paletteIn,
+		"-lavfi", "paletteuse=dither=sierra2_4a",
+		"-compression_level", "9",
+		output,
+	}
+}
+
 // BuildImageArgs builds ffmpeg arguments for image compression.
 // Quality is 1-100 (100 = best). Mapping to encoder-specific values is handled here.
 func BuildImageArgs(input, output string, quality, maxWidth, maxHeight int, stripMeta bool) []string {

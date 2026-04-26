@@ -100,6 +100,8 @@ function dominantFileType() {
 
 const dropZone = document.getElementById('drop-zone');
 const fileList = document.getElementById('file-list');
+const filesContent = document.getElementById('files-content');
+const fileFooter = document.getElementById('file-footer');
 
 async function openFilePicker() {
     try {
@@ -150,10 +152,15 @@ function renderFiles() {
     fileList.replaceChildren();
     if (selectedFiles.length === 0) {
         dropZone.style.display = '';
+        filesContent.classList.remove('files-content--list');
+        fileFooter.hidden = true;
+        fileFooter.replaceChildren();
         return;
     }
 
     dropZone.style.display = 'none';
+    filesContent.classList.add('files-content--list');
+    fileFooter.hidden = false;
 
     selectedFiles.forEach((f, i) => {
         const metaParts = [];
@@ -182,7 +189,7 @@ function renderFiles() {
         ]));
     });
 
-    fileList.appendChild(el('div', {className: 'file-actions'}, [
+    fileFooter.replaceChildren(el('div', {className: 'file-actions'}, [
         el('button', {
             className: 'btn-ghost',
             textContent: 'Add more',
@@ -208,6 +215,13 @@ function formatDuration(sec) {
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return m + ':' + s.toString().padStart(2, '0');
+}
+
+function parseSizeToBytes(s) {
+    const n = parseFloat(s);
+    if (s.endsWith('MB')) return n * 1024 * 1024;
+    if (s.endsWith('KB')) return n * 1024;
+    return n;
 }
 
 // ─── Settings ───
@@ -325,7 +339,7 @@ async function startCompression() {
     showScreen('screen-progress');
     document.getElementById('progress-bar').style.width = '0%';
     document.getElementById('progress-text').textContent = '0';
-    document.querySelector('.progress-track').setAttribute('aria-valuenow', '0');
+    document.getElementById('progress-track').setAttribute('aria-valuenow', '0');
 
     const opts = {
         files: selectedFiles.map(f => f.path),
@@ -343,6 +357,10 @@ async function startCompression() {
 
     try {
         const results = await Compress(opts);
+        document.getElementById('progress-bar').style.width = '100%';
+        document.getElementById('progress-text').textContent = '100';
+        document.getElementById('progress-track').setAttribute('aria-valuenow', '100');
+        await new Promise(r => setTimeout(r, 350));
         showResults(results);
     } catch (e) {
         showError('Compression failed. Please try again.');
@@ -355,15 +373,42 @@ async function startCompression() {
 }
 
 EventsOn('compress:file', (data) => {
-    document.getElementById('progress-file').textContent =
-        data.name + '  (' + (data.index + 1) + ' of ' + data.total + ')';
+    const label = document.getElementById('progress-file');
+    label.textContent = data.name + '  (' + (data.index + 1) + ' of ' + data.total + ')';
+    delete label.dataset.indeterminate;
+    delete label.dataset.originalText;
 });
 
 EventsOn('compress:progress', (data) => {
-    const pct = Math.round(data.percent);
-    document.getElementById('progress-bar').style.width = pct + '%';
-    document.getElementById('progress-text').textContent = pct;
-    document.querySelector('.progress-track').setAttribute('aria-valuenow', String(pct));
+    const overall = Math.round((data.index * 100 + data.percent) / data.total);
+    const bar = document.getElementById('progress-bar');
+    const text = document.getElementById('progress-text');
+    const track = document.getElementById('progress-track');
+
+    if (overall === 0) {
+        // Unknown duration — show sweep animation so user knows work is happening
+        track.classList.add('progress-track--indeterminate');
+        text.classList.add('progress-pct--indeterminate');
+        text.textContent = '0';
+        track.removeAttribute('aria-valuenow');
+        document.getElementById('progress-file').dataset.indeterminate = '1';
+        const label = document.getElementById('progress-file');
+        if (!label.dataset.originalText) label.dataset.originalText = label.textContent;
+        label.textContent = label.dataset.originalText + '  ·  This may take a minute...';
+    } else {
+        // Real progress — switch back to fill bar
+        track.classList.remove('progress-track--indeterminate');
+        text.classList.remove('progress-pct--indeterminate');
+        bar.style.width = overall + '%';
+        text.textContent = overall;
+        track.setAttribute('aria-valuenow', String(overall));
+        const label = document.getElementById('progress-file');
+        if (label.dataset.indeterminate) {
+            label.textContent = label.dataset.originalText || label.textContent;
+            delete label.dataset.indeterminate;
+            delete label.dataset.originalText;
+        }
+    }
 });
 
 // ─── Results ───
@@ -393,11 +438,11 @@ function showResults(results) {
                 statItems.push(el('span', {className: 'result-stat', textContent: r.inputRes + ' \u2192 ' + r.outputRes}));
             }
 
-            // Calculate saved percentage from size strings
-            const inNum = parseFloat(r.inputSize);
-            const outNum = parseFloat(r.outputSize);
-            if (inNum > 0 && outNum > 0) {
-                const saved = Math.round((1 - outNum / inNum) * 100);
+            // Calculate saved percentage \u2014 normalize both sizes to the same unit first
+            const inBytes = parseSizeToBytes(r.inputSize);
+            const outBytes = parseSizeToBytes(r.outputSize);
+            if (inBytes > 0 && outBytes > 0) {
+                const saved = Math.round((1 - outBytes / inBytes) * 100);
                 if (saved > 0) {
                     statItems.push(el('span', {className: 'result-stat result-stat--saved', textContent: '\u2212' + saved + '%'}));
                 }
@@ -469,5 +514,8 @@ document.getElementById('btn-new').addEventListener('click', () => {
     document.getElementById('output-dir-label').textContent = 'Same folder as original';
     fileList.replaceChildren();
     dropZone.style.display = '';
+    filesContent.classList.remove('files-content--list');
+    fileFooter.hidden = true;
+    fileFooter.replaceChildren();
     showScreen('screen-files');
 });
