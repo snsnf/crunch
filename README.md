@@ -42,8 +42,7 @@ Drop a file. Pick a size. Get a smaller file. That's it.
 
 **macOS (Homebrew):**
 ```bash
-brew tap snsnf/crunch
-brew install --cask crunch
+brew install --cask snsnf/crunch/crunch
 ```
 
 **Windows:** Download [Crunch-Setup-windows-amd64.exe](https://github.com/snsnf/crunch/releases/latest) and run the installer.
@@ -60,7 +59,7 @@ The GUI comes with ffmpeg bundled — no extra setup needed.
 
 > **macOS note:** If you see "Apple could not verify", run:
 > ```bash
-> xattr -d com.apple.quarantine /path/to/Crunch.app
+> xattr -dr com.apple.quarantine /Applications/Crunch.app
 > ```
 
 ### CLI
