@@ -191,9 +191,20 @@ body {
     margin-bottom: 20px;
 }
 
-.about-link {
-    display: inline-block;
+.about-credit {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35em;
+    row-gap: 0.15em;
     font-size: 13px;
+    cursor: default;
+}
+
+.about-link {
+    display: inline;
+    font-size: inherit;
     color: var(--accent);
     font-weight: 500;
     background: none;
@@ -202,6 +213,17 @@ body {
     cursor: pointer;
     padding: 0;
     transition: color 0.12s;
+}
+
+.about-link-affirm {
+    font-weight: 400;
+    color: var(--text-tertiary);
+}
+
+.about-link-heart {
+    flex-shrink: 0;
+    margin: 0 -0.05em;
+    color: var(--accent);
 }
 
 .about-link:hover {

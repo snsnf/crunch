@@ -67,7 +67,8 @@ func RunImage(paths *ffmpeg.Paths, opts ImageOptions, onProgress func(float64)) 
 		palettePath := outputPath + ".palette.png"
 		defer os.Remove(palettePath)
 
-		pass1 := ffmpeg.BuildPNGPalettegenArgs(opts.InputPath, palettePath, colors)
+		maxDim := ffmpeg.PNGMaxDim(quality)
+		pass1 := ffmpeg.BuildPNGPalettegenArgs(opts.InputPath, palettePath, colors, maxDim)
 		if err := ffmpeg.RunSimple(paths.FFmpeg, pass1); err != nil {
 			return nil, fmt.Errorf("PNG palettegen failed: %w", err)
 		}
@@ -75,7 +76,7 @@ func RunImage(paths *ffmpeg.Paths, opts ImageOptions, onProgress func(float64)) 
 			onProgress(50)
 		}
 
-		pass2 := ffmpeg.BuildPNGPaletteuseArgs(opts.InputPath, palettePath, outputPath)
+		pass2 := ffmpeg.BuildPNGPaletteuseArgs(opts.InputPath, palettePath, outputPath, quality, maxDim)
 		if err := ffmpeg.RunSimple(paths.FFmpeg, pass2); err != nil {
 			os.Remove(outputPath)
 			return nil, fmt.Errorf("PNG paletteuse failed: %w", err)

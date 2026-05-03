@@ -13,13 +13,27 @@
   <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#the-whatsapp-preset">WhatsApp Preset</a> · <a href="#building-from-source">Build</a>
 </p>
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/screenshot-drop.png" width="49%" alt="Drop files to compress" />
+  <img src="screenshots/screenshot-files.png" width="49%" alt="File list" />
+</p>
+<p align="center">
+  <img src="screenshots/screenshot-settings.png" width="49%" alt="Compression settings" />
+  <img src="screenshots/screenshot-progress.png" width="49%" alt="Compression in progress" />
+</p>
+<p align="center">
+  <img src="screenshots/screenshot-result.png" width="49%" alt="Done — 3.7 MB → 114 KB" />
+</p>
+
 ## The Problem
 
 I needed to send a video on WhatsApp. Simple, right?
 
 **Attempt 1:** Send directly. WhatsApp compresses it. Video looks like it was filmed through a potato.
 
-**Attempt 2:** Use an online compressor. Upload 200MB, wait 10 minutes, download, send. WhatsApp compresses it AGAIN. Now it looks like a potato filmed through another potato.
+**Attempt 2:** Use an online compressor. Upload 200MB, wait 10 minutes, download, send. WhatsApp compresses it AGAIN. Potato quality, twice the wait.
 
 **Attempt 3:** Try every compressor app out there. None of them understand what WhatsApp actually needs. The output either gets re-compressed on send or comes out looking worse than just sending the original.
 

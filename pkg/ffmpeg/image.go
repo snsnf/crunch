@@ -6,20 +6,48 @@ import (
 	"strings"
 )
 
-// BuildPNGPalettegenArgs generates a palette PNG from the source image (PNG pass 1).
-func BuildPNGPalettegenArgs(input, paletteOut string, colors int) []string {
-	return []string{
-		"-y", "-i", input,
-		"-vf", fmt.Sprintf("palettegen=max_colors=%d:stats_mode=diff", colors),
-		paletteOut,
+// pngMaxDim returns the max pixel dimension to use for PNG compression at the given quality.
+// At lower quality levels the image is downscaled to achieve meaningful size reduction,
+// since palette quantization alone cannot overcome the overhead of many pixels.
+// Returns 0 (no scaling) for quality > 50.
+func PNGMaxDim(quality int) int {
+	switch {
+	case quality <= 25:
+		return 1280
+	case quality <= 50:
+		return 1920
+	default:
+		return 0
 	}
 }
 
+// BuildPNGPalettegenArgs generates a palette PNG from the source image (PNG pass 1).
+// maxDim > 0 scales the image so its longer side does not exceed maxDim.
+func BuildPNGPalettegenArgs(input, paletteOut string, colors, maxDim int) []string {
+	vf := fmt.Sprintf("palettegen=max_colors=%d:stats_mode=diff", colors)
+	if maxDim > 0 {
+		vf = fmt.Sprintf("scale='if(gt(iw\\,ih)\\,min(%d\\,iw)\\,-2)':'if(gt(iw\\,ih)\\,-2\\,min(%d\\,ih))',%s", maxDim, maxDim, vf)
+	}
+	return []string{"-y", "-i", input, "-vf", vf, paletteOut}
+}
+
 // BuildPNGPaletteuseArgs applies a palette to produce the final quantized PNG (PNG pass 2).
-func BuildPNGPaletteuseArgs(input, paletteIn, output string) []string {
+// maxDim > 0 scales the image to match pass 1. At quality<=50 dithering is skipped so
+// flat areas compress better; above 50 sierra2_4a dithering preserves gradients.
+func BuildPNGPaletteuseArgs(input, paletteIn, output string, quality, maxDim int) []string {
+	dither := "sierra2_4a"
+	if quality <= 50 {
+		dither = "none"
+	}
+	var lavfi string
+	if maxDim > 0 {
+		lavfi = fmt.Sprintf("[0:v]scale='if(gt(iw\\,ih)\\,min(%d\\,iw)\\,-2)':'if(gt(iw\\,ih)\\,-2\\,min(%d\\,ih))'[scaled];[scaled][1:v]paletteuse=dither=%s", maxDim, maxDim, dither)
+	} else {
+		lavfi = "paletteuse=dither=" + dither
+	}
 	return []string{
 		"-y", "-i", input, "-i", paletteIn,
-		"-lavfi", "paletteuse=dither=sierra2_4a",
+		"-lavfi", lavfi,
 		"-compression_level", "9",
 		output,
 	}
@@ -58,19 +86,29 @@ func BuildImageArgs(input, output string, quality, maxWidth, maxHeight int, stri
 
 	case ".png":
 		// PNG is lossless — we can't reduce quality like JPEG.
-		// Strategy: quantize to a reduced palette for real size savings.
+		// Strategy: palette quantization + downscale at low quality for real size savings.
 		// Map quality to number of colors: 100=256, 75=192, 50=128, 25=64, 1=32
 		colors := 32 + (quality * 224 / 100)
 		if colors > 256 {
 			colors = 256
 		}
 
-		// Build a proper palettegen/paletteuse filter pipeline
+		// Auto-scale at low quality levels — palette quantization alone can't overcome
+		// the overhead of many pixels on large images.
+		autoMaxDim := PNGMaxDim(quality)
+		if autoMaxDim > 0 && maxWidth == 0 && maxHeight == 0 {
+			filters = append([]string{fmt.Sprintf("scale='if(gt(iw\\,ih)\\,min(%d\\,iw)\\,-2)':'if(gt(iw\\,ih)\\,-2\\,min(%d\\,ih))'", autoMaxDim, autoMaxDim)}, filters...)
+		}
+
 		scaleFilter := ""
 		if len(filters) > 0 {
 			scaleFilter = strings.Join(filters, ",") + ","
 		}
-		pngFilter := fmt.Sprintf("%ssplit[s0][s1];[s0]palettegen=max_colors=%d:stats_mode=diff[p];[s1][p]paletteuse=dither=sierra2_4a", scaleFilter, colors)
+		dither := "sierra2_4a"
+		if quality <= 50 {
+			dither = "none"
+		}
+		pngFilter := fmt.Sprintf("%ssplit[s0][s1];[s0]palettegen=max_colors=%d:stats_mode=diff[p];[s1][p]paletteuse=dither=%s", scaleFilter, colors, dither)
 		args = append(args, "-vf", pngFilter, "-compression_level", "9")
 
 	case ".webp":
